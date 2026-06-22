@@ -35,6 +35,7 @@ function setState(nextState) {
   state = nextState;
   const currentPet = state.currentPet;
 
+  root.style.setProperty("--pet-size", `${state.size.petSize}px`);
   root.classList.toggle("active", state.mode === "active");
   root.classList.toggle("quiet", state.mode !== "active");
   petImage.src = petAssetPath(currentPet.file);
@@ -196,6 +197,21 @@ window.addEventListener("beforeunload", () => {
 
 window.catcake.onStateChanged(setState);
 window.catcake.onAgentAction(applyAction);
+window.catcake.onCustomSizeRequested(async size => {
+  const input = window.prompt(`输入猫猫糕大小（${size.min}-${size.max}px）`, String(size.current));
+
+  if (input === null) {
+    return;
+  }
+
+  const nextSize = Number(input.trim());
+  if (!Number.isFinite(nextSize)) {
+    return;
+  }
+
+  const nextState = await window.catcake.setPetSize(nextSize);
+  setState(nextState);
+});
 
 window.catcake.getState().then(nextState => {
   setState(nextState);

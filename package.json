@@ -1,7 +1,7 @@
 {
   "name": "catcake-desktop-pet",
-  "version": "0.1.0",
-  "description": "猫猫糕桌宠 v1",
+  "version": "0.11.0",
+  "description": "猫猫糕桌宠 v0.11",
   "main": "src/main/main.js",
   "author": "liyouyu1",
   "license": "UNLICENSED",

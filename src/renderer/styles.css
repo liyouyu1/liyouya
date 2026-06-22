@@ -1,6 +1,7 @@
 :root {
   color-scheme: light;
   font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+  --pet-size: 256px;
 }
 
 * {
@@ -33,8 +34,8 @@ body {
 
 .pet-stage {
   position: relative;
-  width: 256px;
-  height: 256px;
+  width: var(--pet-size);
+  height: var(--pet-size);
   display: grid;
   place-items: center;
   border: 0;
@@ -51,8 +52,8 @@ body {
 .pet-image {
   position: relative;
   z-index: 2;
-  width: 246px;
-  height: 246px;
+  width: calc(var(--pet-size) - 10px);
+  height: calc(var(--pet-size) - 10px);
   object-fit: contain;
   pointer-events: none;
   filter: drop-shadow(0 12px 12px rgba(18, 24, 28, 0.28));
@@ -61,10 +62,11 @@ body {
 .pet-shadow {
   position: absolute;
   z-index: 1;
-  bottom: 7px;
-  left: 58px;
-  width: 140px;
-  height: 28px;
+  bottom: calc(var(--pet-size) * 0.027);
+  left: 50%;
+  width: calc(var(--pet-size) * 0.55);
+  height: calc(var(--pet-size) * 0.11);
+  margin-left: calc(var(--pet-size) * -0.275);
   border-radius: 999px;
   background: rgba(18, 24, 28, 0.18);
   filter: blur(8px);
@@ -76,8 +78,8 @@ body {
   position: absolute;
   z-index: 4;
   left: 50%;
-  bottom: 276px;
-  max-width: 224px;
+  bottom: calc(var(--pet-size) + 20px);
+  max-width: min(224px, calc(100vw - 32px));
   min-height: 32px;
   padding: 7px 12px;
   border: 1px solid rgba(51, 69, 78, 0.16);

@@ -109,7 +109,7 @@ class AgentServer {
       sendJson(res, 200, {
         ok: true,
         service: "catcake-agent",
-        version: "0.1.0",
+        version: "0.11.0",
         timestamp: new Date().toISOString()
       });
       return;

@@ -11,10 +11,19 @@ const {
 } = require("electron");
 const { AgentServer } = require("../agent/server");
 
-const WINDOW_WIDTH = 320;
-const WINDOW_HEIGHT = 360;
 const DEFAULT_MODE = "quiet";
 const SETTINGS_VERSION = 1;
+const DEFAULT_PET_SIZE = 256;
+const MIN_PET_SIZE = 160;
+const MAX_PET_SIZE = 420;
+const WINDOW_EXTRA_WIDTH = 64;
+const WINDOW_EXTRA_HEIGHT = 104;
+const SIZE_PRESETS = [
+  { label: "80%", value: 205 },
+  { label: "100%", value: 256 },
+  { label: "125%", value: 320 },
+  { label: "150%", value: 384 }
+];
 const TRAY_ICON =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAK0lEQVR4AWP4//8/AyUYTFhYGJmBQsBEw4BhMGoYBoOGYTAaBoNRAwA3OAQQfEPFtwAAAABJRU5ErkJggg==";
 
@@ -43,17 +52,32 @@ function loadManifest() {
   return data;
 }
 
+function clampPetSize(value) {
+  const size = Math.round(Number(value) || DEFAULT_PET_SIZE);
+  return Math.min(Math.max(size, MIN_PET_SIZE), MAX_PET_SIZE);
+}
+
+function getWindowSize(petSize = settings ? settings.petSize : DEFAULT_PET_SIZE) {
+  const normalizedPetSize = clampPetSize(petSize);
+  return {
+    width: normalizedPetSize + WINDOW_EXTRA_WIDTH,
+    height: normalizedPetSize + WINDOW_EXTRA_HEIGHT
+  };
+}
+
 function normalizeSettings(raw = {}) {
   const petIds = new Set(manifest.pets.map(pet => pet.id));
   const canReuseStoredSettings = raw.settingsVersion === SETTINGS_VERSION;
   const mode = canReuseStoredSettings && raw.mode === "active" ? "active" : DEFAULT_MODE;
   const storedPetId = canReuseStoredSettings ? raw.petId : manifest.defaultPetId;
   const petId = petIds.has(storedPetId) ? storedPetId : manifest.defaultPetId;
+  const petSize = canReuseStoredSettings ? clampPetSize(raw.petSize) : DEFAULT_PET_SIZE;
 
   return {
     settingsVersion: SETTINGS_VERSION,
     mode,
     petId: petIds.has(petId) ? petId : manifest.pets[0].id,
+    petSize,
     muted: canReuseStoredSettings ? Boolean(raw.muted) : false
   };
 }
@@ -81,6 +105,12 @@ function getPublicState() {
     appVersion: app.getVersion(),
     mode: settings.mode,
     muted: settings.muted,
+    size: {
+      petSize: settings.petSize,
+      min: MIN_PET_SIZE,
+      max: MAX_PET_SIZE,
+      presets: SIZE_PRESETS
+    },
     currentPet: getCurrentPet(),
     manifest,
     agent: {
@@ -97,11 +127,11 @@ function emitState() {
   saveSettings();
 }
 
-function clampWindowPosition(x, y) {
+function clampWindowPosition(x, y, size = getWindowSize()) {
   const display = screen.getDisplayNearestPoint({ x, y });
   const area = display.workArea;
-  const maxX = area.x + area.width - WINDOW_WIDTH;
-  const maxY = area.y + area.height - WINDOW_HEIGHT;
+  const maxX = Math.max(area.x, area.x + area.width - size.width);
+  const maxY = Math.max(area.y, area.y + area.height - size.height);
 
   return {
     x: Math.min(Math.max(x, area.x), maxX),
@@ -121,17 +151,42 @@ function moveWindowBy(dx, dy) {
 
 function positionInitialWindow() {
   const area = screen.getPrimaryDisplay().workArea;
-  const x = area.x + area.width - WINDOW_WIDTH - 48;
-  const y = area.y + area.height - WINDOW_HEIGHT - 32;
-  return clampWindowPosition(x, y);
+  const size = getWindowSize();
+  const x = area.x + area.width - size.width - 48;
+  const y = area.y + area.height - size.height - 32;
+  return clampWindowPosition(x, y, size);
+}
+
+function resizeWindowForPetSize() {
+  if (!petWindow || petWindow.isDestroyed()) {
+    return;
+  }
+
+  const nextSize = getWindowSize();
+  const bounds = petWindow.getBounds();
+  const centerX = bounds.x + bounds.width / 2;
+  const bottom = bounds.y + bounds.height;
+  const next = clampWindowPosition(
+    Math.round(centerX - nextSize.width / 2),
+    Math.round(bottom - nextSize.height),
+    nextSize
+  );
+
+  petWindow.setBounds({
+    x: next.x,
+    y: next.y,
+    width: nextSize.width,
+    height: nextSize.height
+  });
 }
 
 function createPetWindow() {
+  const size = getWindowSize();
   const position = positionInitialWindow();
 
   petWindow = new BrowserWindow({
-    width: WINDOW_WIDTH,
-    height: WINDOW_HEIGHT,
+    width: size.width,
+    height: size.height,
     x: position.x,
     y: position.y,
     transparent: true,
@@ -170,6 +225,12 @@ function buildContextMenu() {
     checked: settings.petId === pet.id,
     click: () => setPet(pet.id)
   }));
+  const sizeItems = SIZE_PRESETS.map(preset => ({
+    label: `${preset.label} (${preset.value}px)`,
+    type: "radio",
+    checked: settings.petSize === preset.value,
+    click: () => setPetSize(preset.value)
+  }));
 
   return Menu.buildFromTemplate([
     {
@@ -188,6 +249,17 @@ function buildContextMenu() {
     {
       label: "切换猫猫糕",
       submenu: petItems
+    },
+    {
+      label: "大小",
+      submenu: [
+        ...sizeItems,
+        { type: "separator" },
+        {
+          label: `自定义... (${MIN_PET_SIZE}-${MAX_PET_SIZE}px)`,
+          click: () => requestCustomSize()
+        }
+      ]
     },
     {
       label: settings.muted ? "取消静音" : "静音",
@@ -243,6 +315,28 @@ function setPet(petId) {
   }
 }
 
+function setPetSize(value) {
+  const nextSize = clampPetSize(value);
+
+  if (settings.petSize === nextSize) {
+    return;
+  }
+
+  settings.petSize = nextSize;
+  resizeWindowForPetSize();
+  emitState();
+}
+
+function requestCustomSize() {
+  if (petWindow && !petWindow.isDestroyed()) {
+    petWindow.webContents.send("size:custom-requested", {
+      current: settings.petSize,
+      min: MIN_PET_SIZE,
+      max: MAX_PET_SIZE
+    });
+  }
+}
+
 function registerIpc() {
   ipcMain.handle("state:get", () => getPublicState());
   ipcMain.handle("mode:set", (_event, mode) => {
@@ -251,6 +345,10 @@ function registerIpc() {
   });
   ipcMain.handle("pet:set", (_event, petId) => {
     setPet(petId);
+    return getPublicState();
+  });
+  ipcMain.handle("size:set", (_event, petSize) => {
+    setPetSize(petSize);
     return getPublicState();
   });
   ipcMain.handle("event:send", (_event, petEvent) => {
