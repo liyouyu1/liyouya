@@ -9,7 +9,8 @@
   "scripts": {
     "start": "electron .",
     "check": "node --check src/agent/server.js && node --check src/main/main.js && node --check src/preload/preload.js && node --check src/renderer/renderer.js",
-    "package:win": "electron-builder --win portable"
+    "package:win": "electron-builder --win portable",
+    "upload": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/upload-to-github.ps1"
   },
   "devDependencies": {
     "electron": "25.9.8",
