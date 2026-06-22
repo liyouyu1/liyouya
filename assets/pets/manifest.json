@@ -1,0 +1,82 @@
+{
+  "defaultPetId": "bing_gao",
+  "pets": [
+    {
+      "id": "bing_gao",
+      "name": "冰糕",
+      "file": "冰糕.webp",
+      "scale": 1,
+      "tags": ["default", "cool"]
+    },
+    {
+      "id": "laji_gao",
+      "name": "垃圾糕",
+      "file": "垃圾糕.webp",
+      "scale": 1,
+      "tags": ["classic"]
+    },
+    {
+      "id": "mojing_maomi",
+      "name": "墨镜猫咪",
+      "file": "墨镜猫咪.webp",
+      "scale": 1,
+      "tags": ["cool"]
+    },
+    {
+      "id": "taibu_ci",
+      "name": "太卜糍",
+      "file": "太卜糍.webp",
+      "scale": 1,
+      "tags": ["mystic"]
+    },
+    {
+      "id": "xingyun_dianxin",
+      "name": "幸运点心",
+      "file": "幸运点心.webp",
+      "scale": 1,
+      "tags": ["lucky"]
+    },
+    {
+      "id": "lamu_zhiyou",
+      "name": "拉姆之友",
+      "file": "拉姆之友.webp",
+      "scale": 1,
+      "tags": ["friend"]
+    },
+    {
+      "id": "daoluan_zhuanjia",
+      "name": "捣乱专家",
+      "file": "捣乱专家.webp",
+      "scale": 1,
+      "tags": ["active"]
+    },
+    {
+      "id": "nuomi_tuan",
+      "name": "糯米团",
+      "file": "糯米团.webp",
+      "scale": 1,
+      "tags": ["soft"]
+    },
+    {
+      "id": "chunbai_de_haizi",
+      "name": "纯白的孩子",
+      "file": "纯白的孩子.webp",
+      "scale": 1,
+      "tags": ["gentle"]
+    },
+    {
+      "id": "zhima_su",
+      "name": "芝麻酥",
+      "file": "芝麻酥.webp",
+      "scale": 1,
+      "tags": ["warm"]
+    },
+    {
+      "id": "tengluo_bing",
+      "name": "藤萝饼",
+      "file": "藤萝饼.webp",
+      "scale": 1,
+      "tags": ["floral"]
+    }
+  ]
+}

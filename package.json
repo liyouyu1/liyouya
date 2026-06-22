@@ -1,0 +1,41 @@
+{
+  "name": "catcake-desktop-pet",
+  "version": "0.1.0",
+  "description": "猫猫糕桌宠 v1",
+  "main": "src/main/main.js",
+  "author": "liyouyu1",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check src/agent/server.js && node --check src/main/main.js && node --check src/preload/preload.js && node --check src/renderer/renderer.js",
+    "package:win": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "25.9.8",
+    "electron-builder": "24.13.3"
+  },
+  "build": {
+    "appId": "com.liyouyu.catcakepet",
+    "productName": "猫猫糕桌宠",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "signAndEditExecutable": false,
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
+  }
+}
